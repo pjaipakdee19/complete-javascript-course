@@ -1,0 +1,21 @@
+{
+  "name": "forkify-practice",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "core-js": "^3.43.0",
+    "fracty": "^1.0.12",
+    "parcel": "^2.15.2",
+    "regenerator-runtime": "^0.14.1",
+    "sass": "^1.89.2"
+  },
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.15.2"
+  }
+}
