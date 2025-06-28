@@ -10,6 +10,7 @@ export const state = {
         resultsPerPage: RES_PER_PAGE,
         page:1,
     },
+    bookmarks: []
 };
 
 export const loadRecipe = async function(id) {
@@ -25,6 +26,12 @@ export const loadRecipe = async function(id) {
             servings: recipe.servings,
             cookingTime: recipe.cooking_time,
             ingredients: recipe.ingredients
+        };
+        
+        if(state.bookmarks.some(bk=> bk.id === id)){
+            state.recipe.bookmarked = true;
+        }else{
+            state.recipe.bookmarked = false;
         }
         // console.log(state.recipe);
         // not return anythings just update state obj
@@ -49,6 +56,7 @@ export const loadSearchResults = async function(query){
             }
         });
         //console.log(state.search);
+        state.search.page = 1
     }catch(err){
         console.error(`${err} 💣💣`);
         throw err;
@@ -63,6 +71,38 @@ export const getSearchResultsPage = function(page = state.search.page){
 
     const start = (page - 1) * state.search.resultsPerPage; //0;
     const end = (page * state.search.resultsPerPage); //9;
-
+    //console.log(state.search.results.slice(start, end));
     return state.search.results.slice(start, end);
+}
+
+export const updateServings = function(newServing){
+    
+    // Update ingredients qty 
+    state.recipe.ingredients.forEach(ing => {
+        ing.quantity = ing.quantity * newServing / state.recipe.servings;
+        // newQty = oldQty * newServings / oldServings
+    });
+
+    // Update serving qty (curr * 2)
+    state.recipe.servings = newServing;
+}
+
+export const addBookmark = function(recipe) {
+    // Add bookmark
+    state.bookmarks.push(recipe);
+
+    if(recipe.id === state.recipe.id){
+        state.recipe.bookmarked = true;
+    }
+}
+
+export const removeBookmark = function(id){
+    // Delete bookmark
+    const index = state.bookmarks.findIndex(bk => bk.id === id);
+    state.bookmarks.splice(index, 1);
+    console.log("remove bookmark", state.bookmarks);
+    console.log(id == state.recipe.id);
+    if(id === state.recipe.id)
+        state.recipe.bookmarked = false;
+    
 }
