@@ -1,5 +1,6 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
+import { MODAL_CLOSE_SEC } from './config.js';
 
 import * as model from './model.js';
 import recipeView from './views/recipeView.js';
@@ -7,6 +8,7 @@ import searchView from './views/searchView.js';
 import resultsView from './views/resultsView.js';
 import paginationView from './views/paginationView.js';
 import bookmarksView from './views/bookmarkView.js';
+import addRecipeView from './views/addRecipeView.js';
 // const recipeContainer = document.querySelector('.recipe');
 
 // NEW API URL (instead of the one shown in the video)
@@ -110,13 +112,45 @@ const controlBookmarks = function(){
   bookmarksView.render(model.state.bookmarks);
 }
 
+const controlAddRecipe = async function(newRecipe){
+  console.log(newRecipe);
+  try{
+
+    // Render loading spinner
+    addRecipeView.renderSpinner();
+
+    //Upload new recipe
+    await model.uploadRecipe(newRecipe);
+    console.log(model.state.recipe);
+    model.addBookmark(model.state.recipe);
+
+    //Render recipe
+    recipeView.render(model.state.recipe);
+
+    // Success message
+    addRecipeView.renderMessage();
+
+    // Close form window
+    setTimeout(function(){
+      addRecipeView.toggleWindow();
+    }, MODAL_CLOSE_SEC * 1000);
+    
+  }catch(err){
+    console.error('💣', err);
+    addRecipeView.renderError(err.message);
+  }
+
+}
+
 const init = function() {
+  // Publisher / Subscriber method
   bookmarksView.addHandlerRender(controlBookmarks);
   recipeView.addHandlerRender(controlRecipes);
   recipeView.addHandlerUpdateServings(controlServings);
   recipeView.addHandlerAddBookmark(controlAddBookmark);
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
+  addRecipeView.addHandlerUpload(controlAddRecipe);
 }
 
 init();

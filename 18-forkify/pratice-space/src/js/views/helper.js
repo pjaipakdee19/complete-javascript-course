@@ -13,7 +13,34 @@ const timeout = function (s) {
 
 export const getJSON = async function (url) {
     try {
-        const res = await Promise.race([fetch(url) , timeout(TIMEOUT_SEC)]);
+        const fetchPro = fetch(url);
+        const res = await Promise.race([fetchPro , timeout(TIMEOUT_SEC)]);
+        // const res = await fetch('https://forkify-api.jonas.io/api/v2/recipes/664c8f193e7aa067e94e8438');
+
+        const data = await res.json();
+        // console.log(res, data);
+        if (!res.ok) {
+            throw new Error(`${data.message} ${res.status}`);
+        }
+        return data;
+    } catch (err) {
+        throw Error(err);
+    }
+
+
+}
+
+
+export const sendJSON = async function (url, uploadData) {
+    try {
+        const fetchPro = fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(uploadData),
+        });
+        const res = await Promise.race([fetchPro , timeout(TIMEOUT_SEC)]);
         // const res = await fetch('https://forkify-api.jonas.io/api/v2/recipes/664c8f193e7aa067e94e8438');
 
         const data = await res.json();

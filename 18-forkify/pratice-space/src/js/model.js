@@ -1,6 +1,6 @@
 import { async } from 'regenerator-runtime';
-import { API_URL, RES_PER_PAGE } from './config';
-import { getJSON } from './views/helper';
+import { API_URL, RES_PER_PAGE, KEY } from './config';
+import { getJSON, sendJSON } from './views/helper';
 
 export const state = {
     recipe: {},
@@ -13,10 +13,9 @@ export const state = {
     bookmarks: []
 };
 
-export const loadRecipe = async function(id) {
-    try{
-        const data = await getJSON(`${API_URL}/${id}`);
-        const {recipe} = data.data;
+
+const createRecipeObject = function(data){
+    const {recipe} = data.data;
         state.recipe = {
             id: recipe.id,
             title: recipe.title,
@@ -25,8 +24,17 @@ export const loadRecipe = async function(id) {
             image: recipe.image_url,
             servings: recipe.servings,
             cookingTime: recipe.cooking_time,
-            ingredients: recipe.ingredients
+            ingredients: recipe.ingredients,
+            // if recipe.key exist below statement will create { key: recipe.key } and extract into key: recipe.key into main object
+            ...(recipe.key && { key: recipe.key }),
         };
+        return recipe;
+}
+
+export const loadRecipe = async function(id) {
+    try{
+        const data = await getJSON(`${API_URL}/${id}`);
+        state.recipe = createRecipeObject(data);
         
         if(state.bookmarks.some(bk=> bk.id === id)){
             state.recipe.bookmarked = true;
@@ -127,3 +135,40 @@ const clearBookmarks = function(){
     localStorage.clear('bookmarks');
 }
 //clearBookmarks();
+
+export const uploadRecipe = async function (newRecipe) {
+    console.log(Object.entries(newRecipe));
+    try {
+        // Re-arrange data before upload
+        const ingredients = Object.entries(newRecipe).filter(
+            entry => entry[0].startsWith('ingredient') && entry[1] !== ''
+        ).map(ing => {
+            const ingArr = ing[1].replaceAll(' ', '').split(',');
+            if (ingArr.length !== 3) throw new Error('Wrong ingredient format! Please use the correct format');
+            const [quantity, unit, description] = ingArr;
+            return { quantity: quantity ? +quantity : null, unit, description };
+        });
+        console.log(ingredients);
+
+
+        const recipe = {
+            title: newRecipe.title,
+            source_url: newRecipe.sourceUrl,
+            image_url: newRecipe.image,
+            publisher: newRecipe.publisher,
+            cooking_time: +newRecipe.cookingTime,
+            servings: +newRecipe.servings,
+            ingredients,
+        };
+        console.log(recipe);
+
+        const res = await sendJSON(`${API_URL}?key=${KEY}`, recipe);
+        console.log(res);
+        state.recipe = createRecipeObject(res);
+
+    } catch (err) {
+        throw err;
+    }
+
+
+}
