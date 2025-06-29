@@ -6,6 +6,7 @@ import recipeView from './views/recipeView.js';
 import searchView from './views/searchView.js';
 import resultsView from './views/resultsView.js';
 import paginationView from './views/paginationView.js';
+import bookmarksView from './views/bookmarkView.js';
 // const recipeContainer = document.querySelector('.recipe');
 
 // NEW API URL (instead of the one shown in the video)
@@ -28,7 +29,7 @@ const controlRecipes = async function(){
 
     // 0 Update results view to mark selected search result
     resultsView.update(model.getSearchResultsPage());
-
+    bookmarksView.update(model.state.bookmarks);
     // console.log(id);
     // 1. Loading Recipe
     await model.loadRecipe(id);
@@ -63,6 +64,7 @@ const controlSearchResults = async function(){
     controlServings();
   } catch (error) {
     recipeView.renderError();
+    console.error(error);
   }
 };
 
@@ -88,6 +90,7 @@ const controlPagination = function(gotoPage){
 }
 
 const controlAddBookmark = function(){
+  // Add/remove bookmark
   console.log(model.state.recipe.bookmarked);
   if(!model.state.recipe.bookmarked){
     model.addBookmark(model.state.recipe)
@@ -95,11 +98,20 @@ const controlAddBookmark = function(){
     model.removeBookmark(model.state.recipe.id);
   }
   
+  // update recipe view
   console.log(model.state.recipe);
   recipeView.update(model.state.recipe);
+
+  // render bookmarks
+  bookmarksView.render(model.state.bookmarks);
+}
+
+const controlBookmarks = function(){
+  bookmarksView.render(model.state.bookmarks);
 }
 
 const init = function() {
+  bookmarksView.addHandlerRender(controlBookmarks);
   recipeView.addHandlerRender(controlRecipes);
   recipeView.addHandlerUpdateServings(controlServings);
   recipeView.addHandlerAddBookmark(controlAddBookmark);
