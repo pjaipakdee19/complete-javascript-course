@@ -1,6 +1,6 @@
 import { async } from 'regenerator-runtime';
 import { API_URL, RES_PER_PAGE, KEY } from './config';
-import { getJSON, sendJSON } from './views/helper';
+import { getJSON, sendJSON, AJAXrequest } from './views/helper';
 
 export const state = {
     recipe: {},
@@ -33,7 +33,7 @@ const createRecipeObject = function(data){
 
 export const loadRecipe = async function(id) {
     try{
-        const data = await getJSON(`${API_URL}/${id}`);
+        const data = await AJAXrequest(`${API_URL}/${id}?key=${KEY}`);
         state.recipe = createRecipeObject(data);
         
         if(state.bookmarks.some(bk=> bk.id === id)){
@@ -53,14 +53,15 @@ export const loadSearchResults = async function(query){
     try{
         state.search.query = query;
         //https://forkify-api.jonas.io/api/v2/recipes?search=pizza
-        const data = await getJSON(`${API_URL}?search=${query}`);
+        const data = await AJAXrequest(`${API_URL}?search=${query}&key=${KEY}`);
         // console.log(data);
         state.search.results = data.data.recipes.map(rec => {
             return {
                 id: rec.id,
                 title: rec.title,
                 publisher: rec.publisher,
-                image: rec.image_url
+                image: rec.image_url,
+                ...(rec.key && { key: rec.key }),
             }
         });
         //console.log(state.search);
@@ -162,7 +163,7 @@ export const uploadRecipe = async function (newRecipe) {
         };
         console.log(recipe);
 
-        const res = await sendJSON(`${API_URL}?key=${KEY}`, recipe);
+        const res = await AJAXrequest(`${API_URL}?key=${KEY}`, recipe);
         console.log(res);
         state.recipe = createRecipeObject(res);
 
